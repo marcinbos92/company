@@ -1,0 +1,2 @@
+# Company App - Tidio
+
