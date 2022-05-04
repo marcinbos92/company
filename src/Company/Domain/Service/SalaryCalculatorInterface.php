@@ -1,6 +1,5 @@
 <?php
 namespace App\Company\Domain\Service;
-use App\Company\Domain\BonusType;
 
 interface SalaryCalculatorInterface
 {

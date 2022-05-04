@@ -3,7 +3,6 @@ declare(strict_types=1);
 namespace App\Company\Domain\Entity;
 
 use App\Company\Infrastructure\DoctrineUserRepository;
-use Doctrine\DBAL\Types\DateImmutableType;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
