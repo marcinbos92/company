@@ -16,31 +16,34 @@ final class UserFilter
         UserSortField::SALARY,
     ];
 
-    public readonly UserSortField $orderBy;
-    public readonly string $order;
-    public readonly ?UserFilterField $filterBy;
+    private UserSortField $orderBy;
+    private string $order;
 
-    public readonly ?string $department;
-    public readonly ?string $name;
-    public readonly ?string $surname;
+    private ?string $department;
+    private ?string $name;
+    private ?string $surname;
 
-    private function __construct() {}
+    private function __construct()
+    {
+        $this->orderBy = UserFilter::DEFAULT_ORDER_BY;
+        $this->order = UserFilter::DEFAULT_ORDER;
+    }
 
     /** @param mixed[] $data */
     public static function fromQuery(array $data): self
     {
+        $availableOrders = fn () => array_map(fn (UserSortField $field) => $field->value, self::ORDERS);
+
         $self = new self();
 
-        $self->orderBy = UserFilter::DEFAULT_ORDER_BY;
         if (array_key_exists('orderBy', $data)) {
-            if (!in_array($data['orderBy'], self::ORDERS)) {
+            if (!in_array($data['orderBy'], $availableOrders())) {
                 throw new \InvalidArgumentException('Incorrect order by value.');
             }
 
-            $self->orderBy = $data['orderBy'];
+            $self->orderBy = UserSortField::from($data['orderBy']);
         }
 
-        $self->order = UserFilter::DEFAULT_ORDER;
         if (array_key_exists('order', $data)) {
             if (!in_array($data['order'], ['asc', 'desc'])) {
                 throw new \InvalidArgumentException('Incorrect order value.');
@@ -49,10 +52,35 @@ final class UserFilter
             $self->order = $data['order'];
         }
 
-        $self->department = array_key_exists('department', $data) ? (string) $data['departmentName'] : null;
+        $self->department = array_key_exists('department', $data) ? (string) $data['department'] : null;
         $self->name = array_key_exists('name', $data) ? $data['name'] : null;
         $self->surname = array_key_exists('surname', $data) ? $data['surname'] : null;
 
         return $self;
+    }
+
+    public function getOrderBy(): UserSortField
+    {
+        return $this->orderBy;
+    }
+
+    public function getOrder(): string
+    {
+        return $this->order;
+    }
+
+    public function getDepartment(): ?string
+    {
+        return $this->department;
+    }
+
+    public function getName(): ?string
+    {
+        return $this->name;
+    }
+
+    public function getSurname(): ?string
+    {
+        return $this->surname;
     }
 }

@@ -25,14 +25,20 @@ class UserController
     #[Route('/api/users', name: 'users_list', methods: ['GET'])]
     public function listAction(Request $request): JsonResponse
     {
-        // TODO: Verify order by field from request
-        // TODO: Verify filter by field from request
+        // Future improvement -> inject symfony validator and check request data - basic types etc.
 
         $query = [];
         $request->query->has('orderBy') && $query['orderBy'] = $request->query->get('orderBy');
         $request->query->has('order') && $query['order'] = $request->query->get('order');
+        $request->query->has('department') && $query['department'] = $request->query->get('department');
+        $request->query->has('name') && $query['name'] = $request->query->get('name');
+        $request->query->has('surname') && $query['surname'] = $request->query->get('surname');
 
-        $userData = $this->userQuery->filter(UserFilter::fromQuery($query));
+        try {
+            $userData = $this->userQuery->filter(UserFilter::fromQuery($query));
+        } catch (\InvalidArgumentException $exception) {
+            return new JsonResponse($exception->getMessage(), Response::HTTP_BAD_REQUEST);
+        }
 
         return new JsonResponse(ListView::fromData($userData));
     }
@@ -40,6 +46,8 @@ class UserController
     #[Route('/api/users', name: 'users_create', methods: ['POST'])]
     public function createAction(Request $request): JsonResponse
     {
+        // Future improvement -> handle request data from POST and validate using for example symfony validator
+
         $hrDepartment = $this->departments->findUsingName('Human Resources');
         $csDepartment = $this->departments->findUsingName('Customer Service');
 

@@ -1,0 +1,57 @@
+#POST https://localhost/api/departments
+
+###
+#POST https://localhost/api/users
+
+###
+GET https://localhost/api/users
+
+<> 2022-05-04T145941.200.json
+
+###
+GET https://localhost/api/users?orderBy=name&order=asc
+
+<> 2022-05-04T145944.200.json
+
+###
+GET https://localhost/api/users?orderBy=name&order=desc
+
+<> 2022-05-04T145944-1.200.json
+
+###
+GET https://localhost/api/users?orderBy=surname&order=asc
+
+<> 2022-05-04T145944-2.200.json
+
+###
+GET https://localhost/api/users?orderBy=surname&order=desc
+
+<> 2022-05-04T145946.200.json
+
+###
+GET https://localhost/api/users?orderBy=bonusSalary&order=asc
+
+<> 2022-05-04T145946-1.200.json
+
+###
+GET https://localhost/api/users?orderBy=salary&order=desc
+
+<> 2022-05-04T145946-2.200.json
+
+###
+GET https://localhost/api/users?department=Customer Service
+
+<> 2022-05-04T145947.200.json
+
+###
+GET https://localhost/api/users?name=Anna
+
+<> 2022-05-04T145949.200.json
+
+###
+GET https://localhost/api/users?surname=Kowalski
+
+<> 2022-05-04T145949-1.200.json
+
+###
+GET https://localhost/api/users?orderBy=test&order=desc

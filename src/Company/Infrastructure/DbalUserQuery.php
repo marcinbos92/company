@@ -42,17 +42,79 @@ class DbalUserQuery implements UserQueryInterface
                 ', (date_part(\'year\', age(now()::date, started_work_on::date))) AS seniority'
             );
 
+        if ($filter->getOrderBy() === UserSortField::BONUS_SALARY || $filter->getOrderBy() === UserSortField::SALARY) {
+            $query = $this->buildCustomQueryForSorting();
+        }
+
         $orderMap = [
             UserSortField::NAME->value => 'user_name',
             UserSortField::SURNAME->value => 'user_surname',
             UserSortField::DEPARTMENT_NAME->value => 'department_name',
             UserSortField::BASE_SALARY->value => 'base_salary',
             UserSortField::BONUS_TYPE->value => 'bonus_type',
+            UserSortField::BONUS_SALARY->value => 'bonus_salary',
+            UserSortField::SALARY->value => 'total_salary',
         ];
 
-        $filter->orderBy && $query->addOrderBy($orderMap[$filter->orderBy->value], $filter->order);
+        $filter->getDepartment() && $query
+            ->andWhere('d.name = :departmentName')
+            ->setParameter('departmentName', $filter->getDepartment());
+
+        $filter->getName() && $query
+            ->andWhere('u.name = :userName')
+            ->setParameter('userName', $filter->getName());
+
+        $filter->getSurname() && $query
+            ->andWhere('u.surname = :userSurname')
+            ->setParameter('userSurname', $filter->getSurname());
+
+        $filter->getOrderBy() && $query->addOrderBy($orderMap[$filter->getOrderBy()->value], $filter->getOrder());
 
         return $query;
+    }
+
+    private function buildCustomQueryForSorting(): QueryBuilder
+    {
+        $innerFromSql = <<<SQL
+            (SELECT
+                u.name                                                       AS user_name,
+                u.surname                                                    AS user_surname,
+                u.department_id,
+                u.base_salary,
+                date_part('year', age(now()::date, u.started_work_on::date)) AS seniority FROM users u
+            )
+        SQL;
+
+        $selectSql = <<<SQL
+               user_name,
+               user_surname,
+               seniority,
+               base_salary,
+               bonus_value,
+               bonus_type,
+               d.name AS department_name,
+               (
+                   CASE
+                       WHEN seniority > 1 AND seniority <= 10 AND bonus_type = 1 THEN bonus_value * seniority
+                       WHEN seniority > 10 AND bonus_type = 1 THEN bonus_value * 10
+                       WHEN bonus_type = 2 THEN (bonus_value::float /100) * base_salary
+                   END
+               ) AS bonus_salary,
+               (
+                   CASE
+                       WHEN seniority > 1 AND seniority <= 10 AND bonus_type = 1 THEN bonus_value * seniority + base_salary
+                       WHEN seniority > 10 AND bonus_type = 1 THEN bonus_value * 10 + base_salary
+                       WHEN bonus_type = 2 THEN (bonus_value::float /100) * base_salary + base_salary
+                       END
+                   ) AS total_salary
+        SQL;
+
+        return $this
+            ->connection
+            ->createQueryBuilder()
+            ->from($innerFromSql, 'u')
+            ->select($selectSql)
+            ->leftJoin('u', 'departments', 'd', 'u.department_id = d.id');
     }
 
     /**
